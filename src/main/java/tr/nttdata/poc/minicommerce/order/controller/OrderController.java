@@ -94,6 +94,28 @@ public class OrderController {
     }
 
     @LogObjectAfter
+    @PutMapping("updateOrder")
+    public ResponseEntity<?> updateOrder(@Valid @RequestBody CartItem cartItem){
+        try {
+            cartService.updateCartItemQuantity(cartItem.getProductId(), cartItem.getQuantity());
+            return ResponseEntity.ok(cartItem);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
+        }
+    }
+
+    @LogObjectAfter
+    @PostMapping("clearCart")
+    public ResponseEntity<?> clearCart(){
+        try {
+            cartService.clearCart();
+            return ResponseEntity.ok("Cart cleared");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
+        }
+    }
+
+    @LogObjectAfter
     @PostMapping("addToCart")
     public ResponseEntity<?> addToCart(@Valid @RequestBody CartItem cartItem) {
         try {
