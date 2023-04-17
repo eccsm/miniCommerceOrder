@@ -80,8 +80,8 @@ public class OrderService implements IOrderService {
     }
 
     @Override
-    public Order checkout(String customerId) throws ResourceNotFoundException, ServiceException {
-        Cart cart = cartService.getCart();
+    public Order checkout(String username) throws ResourceNotFoundException, ServiceException {
+        Cart cart = cartService.getCart(username);
         if (cart == null || cart.getCartItems().isEmpty()) {
             throw new ServiceException("Cart is empty, cannot perform checkout.");
         }

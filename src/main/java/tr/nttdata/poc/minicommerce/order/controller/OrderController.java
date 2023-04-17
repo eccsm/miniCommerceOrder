@@ -19,6 +19,9 @@ import tr.nttdata.poc.minicommerce.order.service.OrderService;
 @RequestMapping("/orders")
 public class OrderController {
 
+    //TODO extract username from request header
+    static String username = "cengiz";
+
     @Autowired
     private OrderService orderService;
 
@@ -30,7 +33,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<?> createOrder(@RequestBody Order order) {
         try {
-            Order createdOrder = orderService.checkout(order.getCustomerId());
+//            Order createdOrder = orderService.checkout(order.getCustomerId());
+            Order createdOrder = orderService.checkout(username);
             if (createdOrder != null) {
                 return ResponseEntity.ok(createdOrder);
             } else {
@@ -56,7 +60,7 @@ public class OrderController {
     @GetMapping("/cart")
     public ResponseEntity<?> getCart() {
         try {
-            Cart cart = cartService.getCart();
+            Cart cart = cartService.getCart(username);
             return ResponseEntity.ok(cart);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
@@ -97,7 +101,7 @@ public class OrderController {
     @PutMapping("updateOrder")
     public ResponseEntity<?> updateOrder(@Valid @RequestBody CartItem cartItem){
         try {
-            cartService.updateCartItemQuantity(cartItem.getProductId(), cartItem.getQuantity());
+            cartService.updateCartItemQuantity(username, cartItem.getProductId(), cartItem.getQuantity());
             return ResponseEntity.ok(cartItem);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
@@ -108,7 +112,7 @@ public class OrderController {
     @PostMapping("clearCart")
     public ResponseEntity<?> clearCart(){
         try {
-            cartService.clearCart();
+            cartService.clearCart(username);
             return ResponseEntity.ok("Cart cleared");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
@@ -119,7 +123,9 @@ public class OrderController {
     @PostMapping("addToCart")
     public ResponseEntity<?> addToCart(@Valid @RequestBody CartItem cartItem) {
         try {
-            cartService.addItemToCart(cartItem);
+            cartService.addItemToCart(username, cartItem);
+            Cart cart = cartService.getCart(username);
+            System.out.println(cart.getCartItems().size());
             return ResponseEntity.ok(cartItem);
 
         } catch (Exception e) {
@@ -129,11 +135,11 @@ public class OrderController {
 
     @LogObjectAfter
     @PostMapping("removeFromCart")
-    public ResponseEntity<?> removeFromCart(@Valid @RequestBody CartItem cartItem) {
+    public ResponseEntity<?> removeFromCart(@RequestBody CartItem cartItem) {
         try {
-            Cart removedItem = cartService.removeItemFromCart(cartItem.getProductId());
+            Cart removedItem = cartService.removeItemFromCart(username, cartItem.getProductId());
             if (removedItem != null)
-                return ResponseEntity.ok("removed");
+                return ResponseEntity.ok(cartItem.getProductId());
             else
                 return ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -142,10 +148,10 @@ public class OrderController {
     }
 
     @LogObjectAfter
-    @PostMapping("/checkout/{customerId}")
-    public ResponseEntity<?> checkout(@PathVariable String customerId) {
+    @PostMapping("/checkout")
+    public ResponseEntity<?> checkout() {
         try {
-            Order order = orderService.checkout(customerId);
+            Order order = orderService.checkout(username);
             if (order != null) {
                 return ResponseEntity.ok(order);
             } else {

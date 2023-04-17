@@ -19,6 +19,6 @@ public interface IOrderService {
 
     boolean deleteOrder(String orderId) throws ResourceNotFoundException, ServiceException;
 
-    Order checkout(String customerId) throws ResourceNotFoundException, ServiceException;
+    Order checkout(String username) throws ResourceNotFoundException, ServiceException;
 
 }
