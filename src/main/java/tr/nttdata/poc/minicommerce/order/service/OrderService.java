@@ -1,5 +1,6 @@
 package tr.nttdata.poc.minicommerce.order.service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +59,7 @@ public class OrderService implements IOrderService {
             if (updatedOrder.getTotalPrice() != null)
                 orderToUpdate.setTotalPrice(updatedOrder.getTotalPrice());
 
-            orderToUpdate.setOrderDate(new Date());
+            orderToUpdate.setOrderDate(LocalDateTime.now());
             orderToUpdate.setStatus(Order.Status.UPDATED.toString());
 
             Order updatedOrderObj = orderRepository.save(orderToUpdate);
@@ -88,7 +89,11 @@ public class OrderService implements IOrderService {
 
         Order order = new Order();
         order.setCart(cart);
+        order.setCustomerId(username);
+        order.setTotalPrice(cart.getTotalPrice());
+        order.setOrderDate(LocalDateTime.now());
         order.setStatus(Order.Status.NEW.toString());
+        orderRepository.save(order);
         cart.clearCart();
         return order;
     }

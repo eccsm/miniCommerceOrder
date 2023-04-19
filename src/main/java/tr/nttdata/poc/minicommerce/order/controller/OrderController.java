@@ -2,6 +2,7 @@ package tr.nttdata.poc.minicommerce.order.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import tr.nttdata.poc.minicommerce.order.annotation.LogObjectAfter;
 import tr.nttdata.poc.minicommerce.order.annotation.LogObjectBefore;
+import tr.nttdata.poc.minicommerce.order.crypt.JwtTokenUtil;
 import tr.nttdata.poc.minicommerce.order.model.Cart;
 import tr.nttdata.poc.minicommerce.order.model.CartItem;
 import tr.nttdata.poc.minicommerce.order.model.Order;
@@ -19,8 +21,8 @@ import tr.nttdata.poc.minicommerce.order.service.OrderService;
 @RequestMapping("/orders")
 public class OrderController {
 
-    //TODO extract username from request header
-    static String username = "cengiz";
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
     private OrderService orderService;
@@ -31,10 +33,10 @@ public class OrderController {
     @LogObjectBefore
     @LogObjectAfter
     @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody Order order) {
+    public ResponseEntity<?> createOrder(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestBody Order order) {
         try {
 //            Order createdOrder = orderService.checkout(order.getCustomerId());
-            Order createdOrder = orderService.checkout(username);
+            Order createdOrder = orderService.checkout(exctractMailFromAuthorization(authorization));
             if (createdOrder != null) {
                 return ResponseEntity.ok(createdOrder);
             } else {
@@ -58,9 +60,9 @@ public class OrderController {
 
     @LogObjectAfter
     @GetMapping("/cart")
-    public ResponseEntity<?> getCart() {
+    public ResponseEntity<?> getCart(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         try {
-            Cart cart = cartService.getCart(username);
+            Cart cart = cartService.getCart(exctractMailFromAuthorization(authorization));
             return ResponseEntity.ok(cart);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
@@ -99,9 +101,9 @@ public class OrderController {
 
     @LogObjectAfter
     @PutMapping("updateOrder")
-    public ResponseEntity<?> updateOrder(@Valid @RequestBody CartItem cartItem){
+    public ResponseEntity<?> updateOrder(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @Valid @RequestBody CartItem cartItem){
         try {
-            cartService.updateCartItemQuantity(username, cartItem.getProductId(), cartItem.getQuantity());
+            cartService.updateCartItemQuantity(exctractMailFromAuthorization(authorization), cartItem.getProductId(), cartItem.getQuantity());
             return ResponseEntity.ok(cartItem);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
@@ -110,9 +112,9 @@ public class OrderController {
 
     @LogObjectAfter
     @PostMapping("clearCart")
-    public ResponseEntity<?> clearCart(){
+    public ResponseEntity<?> clearCart(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization){
         try {
-            cartService.clearCart(username);
+            cartService.clearCart(exctractMailFromAuthorization(authorization));
             return ResponseEntity.ok("Cart cleared");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error message: " + e.getMessage());
@@ -121,10 +123,10 @@ public class OrderController {
 
     @LogObjectAfter
     @PostMapping("addToCart")
-    public ResponseEntity<?> addToCart(@Valid @RequestBody CartItem cartItem) {
+    public ResponseEntity<?> addToCart(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @Valid @RequestBody CartItem cartItem) {
         try {
-            cartService.addItemToCart(username, cartItem);
-            Cart cart = cartService.getCart(username);
+            cartService.addItemToCart(exctractMailFromAuthorization(authorization), cartItem);
+            Cart cart = cartService.getCart(exctractMailFromAuthorization(authorization));
             System.out.println(cart.getCartItems().size());
             return ResponseEntity.ok(cartItem);
 
@@ -135,9 +137,9 @@ public class OrderController {
 
     @LogObjectAfter
     @PostMapping("removeFromCart")
-    public ResponseEntity<?> removeFromCart(@RequestBody CartItem cartItem) {
+    public ResponseEntity<?> removeFromCart(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @RequestBody CartItem cartItem) {
         try {
-            Cart removedItem = cartService.removeItemFromCart(username, cartItem.getProductId());
+            Cart removedItem = cartService.removeItemFromCart(exctractMailFromAuthorization(authorization), cartItem.getProductId());
             if (removedItem != null)
                 return ResponseEntity.ok(cartItem.getProductId());
             else
@@ -149,9 +151,9 @@ public class OrderController {
 
     @LogObjectAfter
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout() {
+    public ResponseEntity<?> checkout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
         try {
-            Order order = orderService.checkout(username);
+            Order order = orderService.checkout(exctractMailFromAuthorization(authorization));
             if (order != null) {
                 return ResponseEntity.ok(order);
             } else {
@@ -162,4 +164,7 @@ public class OrderController {
         }
     }
 
+    private String exctractMailFromAuthorization(String authorization) {
+        return jwtTokenUtil.extractMail(authorization.split(" ")[1]);
+    }
 }

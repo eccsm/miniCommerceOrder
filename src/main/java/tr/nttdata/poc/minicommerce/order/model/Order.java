@@ -1,6 +1,7 @@
 package tr.nttdata.poc.minicommerce.order.model;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
@@ -19,7 +20,7 @@ public class Order implements Serializable {
     private String customerId;
     private Cart cart;
     private Double totalPrice;
-    private Date orderDate;
+    private LocalDateTime orderDate;
     private String status; 
 
     public enum Status {
