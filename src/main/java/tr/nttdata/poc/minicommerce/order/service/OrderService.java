@@ -1,19 +1,18 @@
 package tr.nttdata.poc.minicommerce.order.service;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import jakarta.transaction.Transactional;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import jakarta.transaction.Transactional;
 import tr.nttdata.poc.minicommerce.order.exception.ResourceNotFoundException;
 import tr.nttdata.poc.minicommerce.order.model.Cart;
 import tr.nttdata.poc.minicommerce.order.model.Order;
 import tr.nttdata.poc.minicommerce.order.repository.OrderRepository;
 import tr.nttdata.poc.minicommerce.order.service.interfaces.IOrderService;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -94,7 +93,7 @@ public class OrderService implements IOrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(Order.Status.NEW.toString());
         orderRepository.save(order);
-        cart.clearCart();
+        cartService.clearCart(username);
         return order;
     }
 
